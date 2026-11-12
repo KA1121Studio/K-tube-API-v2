@@ -6,3 +6,7 @@ compatibility_date = "2025-01-01"
 directory = "./public"
 binding = "ASSETS"
 run_worker_first = ["/api/*"]
+
+if (url.pathname === "/" || url.pathname === "/index.html") {
+  return env.ASSETS.fetch(request);
+}
