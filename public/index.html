@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>K-Tube API</title>
+<style>
+  body { margin: 0; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #fff; }
+  #overlay { text-align: center; animation: fadeIn 1.5s ease forwards; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  button { padding: 10px 20px; background: #000; color: #fff; border: none; cursor: pointer; }
+  button:hover { opacity: 0.8; }
+  #statusOutput { margin-top: 20px; }
+</style>
+</head>
+<body>
+<div id="overlay">
+  <h1>K-Tube API</h1>
+  <p>バージョン: <span id="version">11</span></p>
+  <p>K-tube APIインターフェース</p>
+  <p>K-tube専用のAPIです</p>
+  <button onclick="checkStatus()">API状態を確認</button>
+  <div id="statusOutput"></div>
+</div>
+<script>
+function computeVersion() {
+  const digits = location.href.match(/\d/g);
+  return digits ? digits.reduce((a, b) => a + Number(b), 0) : 0;
+}
+document.getElementById("version").textContent = computeVersion();
+
+async function checkStatus() {
+  const out = document.getElementById("statusOutput");
+  out.textContent = "確認中...";
+  const start = performance.now();
+  const testVideoId = "dQw4w9WgXcQ";
+
+  try {
+    const res = await fetch("/api/video?v=" + testVideoId); // パスを /api/video に変更
+    if (!res.ok) throw new Error();
+    const time = Math.round(performance.now() - start);
+    out.textContent = `正常に動作中（応答速度: ${time}ms）`;
+  } catch {
+    out.textContent = "APIが応答しませんでした";
+  }
+}
+</script>
+</body>
+</html>
