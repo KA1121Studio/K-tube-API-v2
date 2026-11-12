@@ -1,9 +1,8 @@
 // worker.js
 // Cloudflare Workers 版 K-Tube API
-// list.js と video.js の API リストを統合し、/api/list と /api/video を提供する
+// video.js の API リストを使用し、/api/list と /api/video を提供する
 
-const APIS = [
-  // ── video.js 由来（先頭の yt-comp5 を含む）──
+const apis = [
   "https://yt-comp5.chocolatemoo53.com",
   "https://nyc1.iv.ggtyler.dev",
   "https://invid-api.poketube.fun",
@@ -132,7 +131,7 @@ const APIS = [
 ];
 
 // ── 重複除去 + 定数 ──
-const UNIQUE_APIS = [...new Set(APIS)];
+const UNIQUE_APIS = [...new Set(apis)];
 const MAX_CANDIDATES = 25;  // 同時に叩く最大数
 const TIMEOUT_MS = 6000;    // 各リクエストのタイムアウト
 
@@ -169,7 +168,7 @@ export default {
       return jsonResponse(
         {
           count: UNIQUE_APIS.length,
-          total: APIS.length,
+          total: apis.length,
           apis: UNIQUE_APIS
         },
         200,
@@ -196,8 +195,13 @@ export default {
             "User-Agent": "Mozilla/5.0 (compatible; K-tube/1.0)"
           },
           signal: AbortSignal.timeout(TIMEOUT_MS)
-        }).then((r) => {
+        }).then(async (r) => {
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          // CAPTCHA ページ（HTML）を JSON と誤認しないようにチェック
+          const ct = r.headers.get("content-type") || "";
+          if (!ct.includes("application/json")) {
+            throw new Error("not json (likely captcha)");
+          }
           return r.json();
         });
       });
@@ -208,6 +212,11 @@ export default {
       } catch {
         return jsonResponse({ error: "all apis failed" }, 500);
       }
+    }
+
+    // ── ルートと /index.html は静的アセットを返す ──
+    if (url.pathname === "/" || url.pathname === "/index.html") {
+      if (env.ASSETS) return env.ASSETS.fetch(request);
     }
 
     // ── それ以外は静的アセット（public/）を返す ──
