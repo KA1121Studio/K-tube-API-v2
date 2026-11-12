@@ -1,9 +1,8 @@
-name = "k-tube-api"
+name = "ktube-api"
 main = "worker.js"
-compatibility_date = "2025-01-01"
+compatibility_date = "2025-01-01"   # 既存の日付でOK
 
 [assets]
 directory = "./public"
 binding = "ASSETS"
 run_worker_first = ["/api/*"]
-
